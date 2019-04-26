@@ -8,7 +8,7 @@ class Trello:
     """ Information relative to a person wanting to leave on exchange.
     """
 
-    def __init__(self, key, token, idBoard):
+    def __init__(self, token, key, idBoard):
         """
         Initialises the link with the Trello API
 
