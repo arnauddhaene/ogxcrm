@@ -5,7 +5,7 @@ class Person:
     """ Information relative to a person wanting to leave on exchange.
     """
 
-    def __init__(self, name, expaId, email, dob, phone, sud, link, status, managers=None, trello=False, trelloId=None):
+    def __init__(self, name, expaid, email, dob, phone, sud, link, status, managers=None, trello=False, trelloId=None):
         """
         Initializes the instance of the representation of a person in the database
 
@@ -23,7 +23,7 @@ class Person:
         """
 
         self.name = name
-        self.expaId = id
+        self.expaId = expaid
         self.email = email
         self.dob = dob
         self.phone = phone
@@ -46,4 +46,4 @@ class Person:
 
     def __repr__(self):
 
-        return 'Nom : {} | SUD : {} | Status : {}'.format(self.name, self.sud, self.status)
+        return 'Nom : {} | SUD : {} | Status : {} | Managers : {}\n'.format(self.name, self.sud, self.status, self.managers)

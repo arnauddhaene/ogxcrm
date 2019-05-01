@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -- coding: utf-8 --
 
-from database.person import Person
 from database.trello import Trello
 from database.expa import Expa
 
@@ -21,7 +20,8 @@ class Database:
 
         self.expa = Expa(expaToken)
         self.trello = Trello(trelloToken, trelloKey, idBoard)
-        self.people = self.get()
+        self.people = []
+        self.get()
 
     def get(self, ):
         """
@@ -30,9 +30,14 @@ class Database:
         :return: a list of (Person)s
         """
 
-        self.expa.get()
-        self.trello.get()
+        self.people = self.expa.get_data()
+        self.trello.update_people(self.people)
+        self.print_new()
+        self.trello.push_trello(self.people)
+
 
     def print_new(self):
 
+        print "People who have to be added on Trello :"
         print([person for person in self.people if person.trello == False])
+
