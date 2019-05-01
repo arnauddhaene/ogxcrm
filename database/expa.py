@@ -1,6 +1,11 @@
 #!/usr/bin/python
 # -- coding: utf-8 --
 
+from person import Person
+import datetime
+import urllib
+import json
+
 class Expa:
     """ Information relative to a person wanting to leave on exchange.
     """
@@ -11,7 +16,6 @@ class Expa:
         """
 
         self.token = token
-
 
     @staticmethod
     def expa_dater(day, month, year):       # function making the conversion to the date format wanted in the expa URL
@@ -29,11 +33,7 @@ class Expa:
         return newdate[1] + '/' + newdate[0] + '/' + newdate[2]  # Trello uses american date formatting
 
 
-
-
     def get_url(self):        # function creating the URL to pull SIGN UP data - following the GIS AIESEC EXPA API guidelins
-
-        import datetime
 
         # today's date
         d = datetime.datetime.today()
@@ -42,22 +42,17 @@ class Expa:
 
         url1 = "https://gis-api.aiesec.org/v2/people?access_token="
         start_date = ['01', '02', '2019']
-        url2 = '&page=1&per_page=400&filters[registered]%5Bfrom%5D=' + Expa.expa_dater(
-            *start_date) + '&filters[registered]%5Bto%5D=' + Expa.expa_dater(*end_date) + '&filters[is_aiesecer]=false'
-        final_url = url1 + tok1.token + url2
+        url2 = '&page=1&per_page=400&filters[registered]%5Bfrom%5D=' + Expa.expa_dater(*start_date) +\
+               '&filters[registered]%5Bto%5D=' + Expa.expa_dater(*end_date) + '&filters[is_aiesecer]=false'
+        final_url = url1 + self.token + url2
 
         return  final_url
 
 
     def get_data(self):        # function pulling the datas from the GIS AIESEC EXPA API and creating a list of people
-        import urllib
-        import json
-        from person import Person
-
-        final_url = Expa.get_url(tok1)
 
         # pull data from URL
-        fp = urllib.urlopen(final_url)
+        fp = urllib.urlopen(self.get_url())
         mybytes = fp.read()
 
         data = mybytes.decode("utf8")
@@ -120,20 +115,11 @@ class Expa:
         for x in range(len(people)):
             print people[x],
 
+        return people
 
-tok1 = Expa('2ec56b335351ba4c9744e2eb029bb24d52d3644f5185da1d5e0e01a7ca4e5823')
-
-print tok1.token
-
-Expa.get_data(tok1)
-
-
-
-
-    #def get(self, ):
-    #    """
-    #    Get's all information from Expa
-    #    :return:
-    #    """
-    #    pass
-
+    def get(self, ):
+       """
+       Get's all information from Expa
+       :return:
+       """
+       pass

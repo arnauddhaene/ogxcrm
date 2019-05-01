@@ -1,8 +1,8 @@
 #!/usr/bin/python
 # -- coding: utf-8 --
 
-from database.trello import Trello
-from database.expa import Expa
+from trello import Trello
+from expa import Expa
 
 class Database:
     """ Information relative to a person wanting to leave on exchange.
@@ -33,11 +33,13 @@ class Database:
         self.people = self.expa.get_data()
         self.trello.update_people(self.people)
         self.print_new()
-        self.trello.push_trello(self.people)
+        # self.trello.push_trello(self.people)
 
 
     def print_new(self):
 
-        print "People who have to be added on Trello :"
-        print([person for person in self.people if person.trello == False])
+        to_add = [person for person in self.people if person.trello == False]
+
+        print "\n ===== TRELLO UPDATE =====\n {} people will be added to Trello :".format(len(to_add))
+        print(to_add)
 

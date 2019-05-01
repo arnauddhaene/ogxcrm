@@ -22,7 +22,7 @@ class Person:
         :param trelloId:
         """
 
-        self.name = name
+        self.name = name.encode('utf-8').strip()
         self.expaId = expaid
         self.email = email
         self.dob = dob

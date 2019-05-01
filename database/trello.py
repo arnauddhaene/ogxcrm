@@ -21,8 +21,6 @@ class Trello:
         self.idBoard = idBoard
 
 
-
-
     def update_people(self, people):
         """
         Get's all card information from Trello
@@ -40,13 +38,11 @@ class Trello:
         data = json.loads(requests.request("GET", url, params=querystring).text)
 
         # noms des personnes déjà dans le système (ceux sur Trello)
-        names = [element['name'] for element in data]
+        names = [element['name'].encode('utf-8').strip() for element in data]
 
         for person in people:
             if person.name in names:
                 person.trello = True
-
-
 
 
     def push_trello(self, people) :
@@ -55,8 +51,6 @@ class Trello:
 
         :param people:
         """
-
-        import requests
 
         response = []
 
@@ -77,6 +71,3 @@ class Trello:
                 response.append(requests.request("POST", url, params=querystring))
 
         print("TRELLO PUSH :::: " + str(len(response)) + " CARDS ADDED TO OGX CRM")
-
-
-
