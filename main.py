@@ -1,13 +1,14 @@
 #!/usr/bin/python
 # -- coding: utf-8 --
 
+
 from database import Database
 
 # initialise the dabatase
-expaToken = "27b81dfbff4ff8e8424786ff84f74f97e84e82cc013bacbb9cdc576fcae025da"
+expaToken = "f0249c34905d31f22165b21b075a11e71ecbac8535c17abc0837012afbc83f19"
 
 # constant token variables
-trelloToken = "9f9de4286e6a5f627f083dc3ca8fdf6dceae7307a06c5e9dcedda4212491a4e3"
+trelloToken = "c9d4a9e119e80ad8b763a129418a9f534b7fc8abceee642538083b87f2d65077"
 trelloKey = "448b14b4374aaa9429f4a8b979936e2b"
 idBoard = "5cb1f5a13ae5f15b88be935d"
 

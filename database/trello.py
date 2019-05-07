@@ -52,6 +52,11 @@ class Trello:
         :param people:
         """
 
+        idList_SignUp = '5cb1f6163e3fc475f62e9ff0'
+
+        params = {"key": "448b14b4374aaa9429f4a8b979936e2b",
+                    "token": "9f9de4286e6a5f627f083dc3ca8fdf6dceae7307a06c5e9dcedda4212491a4e3"}
+
         response = []
 
         for person in people:
@@ -62,12 +67,58 @@ class Trello:
 
                 description = "DOB: " + person.dob + '\n' + "Phone: " + person.phone + '\n' + "Email: " + person.email + '\n' + "SUD: " + person.sud + '\n'
 
-                querystring = {"name": person.name, "desc": description,
-                               "pos": "top", "due": person.sud,
-                               "idList": "5cb1f6163e3fc475f62e9ff0", "urlSource": person.link, "keepFromSource": "all",
-                               "key": "448b14b4374aaa9429f4a8b979936e2b",
-                               "token": "9f9de4286e6a5f627f083dc3ca8fdf6dceae7307a06c5e9dcedda4212491a4e3"}
+                querystring = {'name' : person.name, 'desc' : description, 'pos' : 'top', 'due' : person.sud, 'dueComplete' : 'true', 'idList' : idList_SignUp }
 
-                response.append(requests.request("POST", url, params=querystring))
+                response.append(requests.request("POST", url, params=params, data=querystring))
 
         print("TRELLO PUSH :::: " + str(len(response)) + " CARDS ADDED TO OGX CRM")
+
+
+    def get_SignedUp_people(self):
+        """
+        Get a list of people present in the "Signed Up" list on Trello
+        :return:
+        """
+
+        SU_People = []
+
+
+        url = "https://api.trello.com/1/lists/"
+        idList = '5cb1f6163e3fc475f62e9ff0'             #ID of the "Signed Up" List
+
+        url1 = url + idList + "/cards"
+
+        querystring = {"fields": "name",
+                       "key": "448b14b4374aaa9429f4a8b979936e2b",
+                       "token": "9f9de4286e6a5f627f083dc3ca8fdf6dceae7307a06c5e9dcedda4212491a4e3"}
+
+        SU_People = json.loads(requests.request("GET", url1, params=querystring).text)
+
+        return SU_People
+
+
+
+
+    def Push_SignedUp_To_Assigned(self, id):
+        """
+        People present in the "Signed up" list and who have been assigned to a manager different from the VP are pushed in the "Assigned" List
+
+        :return:
+        """
+
+        self.idCard = id
+
+        key = "448b14b4374aaa9429f4a8b979936e2b"
+        token = "9f9de4286e6a5f627f083dc3ca8fdf6dceae7307a06c5e9dcedda4212491a4e3"
+        url = "https://api.trello.com/1/cards"
+        AssignedListID = "5cb2e4b0c7a5380b61388d80"
+
+        url1 = url + '/' + self.idCard
+
+        requests.put(url1, params = dict(key = key, token = token),data = dict(idList = AssignedListID))
+
+
+
+
+
+

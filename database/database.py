@@ -33,7 +33,7 @@ class Database:
         self.people = self.expa.get_data()
         self.trello.update_people(self.people)
         self.print_new()
-        # self.trello.push_trello(self.people)
+        self.trello.push_trello(self.people)
 
 
     def print_new(self):
@@ -43,3 +43,19 @@ class Database:
         print "\n ===== TRELLO UPDATE =====\n {} people will be added to Trello :".format(len(to_add))
         print(to_add)
 
+
+    def Check_Managers (self) :
+
+        pass
+
+        """
+        
+        SU_people = trello.get_SignedUp_people()
+        
+        self.people = expa.get_data()
+        
+        for element in range(len(SU_people)):
+            n
+            if not SU_people[element]['name'] in self.people
+        
+        """
