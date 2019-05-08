@@ -117,12 +117,66 @@ class Expa:
 
         return people
 
+    def get_special_people(self, specialids):
+        """
+        function pulling the datas from the GIS AIESEC EXPA API and creating a list of special people who have to be pushed on Trello
+        :param specialID:
+        :return:
+        """
 
-    def get(self, ):
-       """
-       Get's all information from Expa
-       :return:
-       """
-       pass
+        IDs = specialids
+        special_people = []
 
+        for i in IDs :
+
+
+            url = 'https://gis-api.aiesec.org/v2/people/' + i + '?access_token=' + self.token
+
+            fp = urllib.urlopen(url)
+            mybytes = fp.read()
+
+            data = mybytes.decode("utf8")
+            fp.close()
+
+            datastore = json.loads(data)
+
+            if datastore['first_name'] == 'deleted':
+                continue
+            name = datastore['first_name'] + " " + datastore['last_name']
+            id = datastore['id']
+            email = datastore['email']
+            dob = Expa.trello_dater(datastore['dob'])  # dated in trello format
+
+            if dob == None:  # can't give None as argument to Trello API - needs str
+                dob = 'N/A'
+
+            cc = datastore['contact_info']['country_code']
+            p = datastore['contact_info']['phone']
+
+            if cc == None or not isinstance(cc, str):  # same logic as for DOB
+                if p == None or not isinstance(p, str):
+                    phone = 'N/A'
+                else:
+                    phone = p
+            else:
+                if cc in p[0:4]:
+                    phone = p
+                else:
+                    phone = cc + p
+
+            status = datastore['status']
+
+            managers = []
+
+            for member in datastore['managers']:
+                managers.append(str(member['id']))
+
+            sud = Expa.trello_dater(datastore['created_at'][0:10])
+            if sud == None:
+                sud = 'N/A'
+            link = "https://expa.aiesec.org/people/" + str(id)  # link to person on expa for retrieving additional info
+
+            special_people.append(Person(name, id, email, dob, phone, sud, link, status, managers))  # adds person to special_people list
+
+        return special_people
 

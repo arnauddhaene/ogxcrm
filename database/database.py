@@ -8,7 +8,7 @@ class Database:
     """ Information relative to a person wanting to leave on exchange.
     """
 
-    def __init__(self, expaToken, trelloToken, trelloKey, idBoard):
+    def __init__(self, expaToken, trelloToken, trelloKey, idBoard, SpecialIDtoAdd):
         """
         Initializes de Database 
         
@@ -16,11 +16,14 @@ class Database:
         :param trelloToken: Trello token giving access to the API of the wanted account
         :param trelloKey: Trello key giving access to the API of the wanted account
         :param idBoard: board ID from trello
+        :param SpecialIDtoAdd: List of IDs of people who have to be added to Trello
         """
 
         self.expa = Expa(expaToken)
         self.trello = Trello(trelloToken, trelloKey, idBoard)
         self.people = []
+        self.special_people = []
+        self.IDtoAdd = SpecialIDtoAdd
         self.get()
 
     def get(self, ):
@@ -31,9 +34,11 @@ class Database:
         """
 
         self.people = self.expa.get_data()
+        self.special_people = self.expa.get_special_people(self.IDtoAdd)
         self.trello.update_people(self.people)
         self.print_new()
         self.trello.push_trello(self.people)
+        self.trello.push_trello_special(self.special_people, self.IDtoAdd)
 
 
     def print_new(self):
