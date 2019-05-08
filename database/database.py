@@ -40,7 +40,6 @@ class Database:
         self.trello.push_trello(self.people)
         self.trello.push_trello_special(self.special_people, self.IDtoAdd)
 
-
     def print_new(self):
 
         to_add = [person for person in self.people if person.trello == False]

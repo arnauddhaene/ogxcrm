@@ -129,6 +129,7 @@ class Expa:
 
         for i in IDs :
 
+
             url = 'https://gis-api.aiesec.org/v2/people/' + i + '?access_token=' + self.token
 
             fp = urllib.urlopen(url)

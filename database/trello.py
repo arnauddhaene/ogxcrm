@@ -22,7 +22,6 @@ class Trello:
             '3001465': '5cbae37ccb202f790b6d9297'}
 
 
-
     def __init__(self, token, key, idBoard):
         """
         Initialises the link with the Trello API
