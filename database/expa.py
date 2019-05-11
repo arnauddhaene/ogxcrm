@@ -18,11 +18,11 @@ class Expa:
         self.token = token
 
     @staticmethod
-    def expa_dater(day, month, year):       # function making the conversion to the date format wanted in the expa URL
+    def expaDater(day, month, year):       # function making the conversion to the date format wanted in the expa URL
         return day + "%2F" + month + "%2F" + year
 
     @staticmethod
-    def trello_dater(date):  # function converting date from YYYY-MM-DD to MM/DD/YYYY
+    def trelloDater(date):  # function converting date from YYYY-MM-DD to MM/DD/YYYY
 
         if date == None:  # to avoid working on Nonetype objects (split, reverse, etc.)
             return None
@@ -33,7 +33,7 @@ class Expa:
         return newdate[1] + '/' + newdate[0] + '/' + newdate[2]  # Trello uses american date formatting
 
 
-    def get_url(self):        # function creating the URL to pull SIGN UP data - following the GIS AIESEC EXPA API guidelins
+    def getURL(self):        # function creating the URL to pull SIGN UP data - following the GIS AIESEC EXPA API guidelins
 
         # today's date
         d = datetime.datetime.today()
@@ -42,17 +42,17 @@ class Expa:
 
         url1 = "https://gis-api.aiesec.org/v2/people?access_token="
         start_date = ['01', '02', '2019']
-        url2 = '&page=1&per_page=400&filters[registered]%5Bfrom%5D=' + Expa.expa_dater(*start_date) +\
-               '&filters[registered]%5Bto%5D=' + Expa.expa_dater(*end_date) + '&filters[is_aiesecer]=false'
-        final_url = url1 + self.token + url2
+        url2 = '&page=1&per_page=400&filters[registered]%5Bfrom%5D=' + Expa.expaDater(*start_date) +\
+               '&filters[registered]%5Bto%5D=' + Expa.expaDater(*end_date) + '&filters[is_aiesecer]=false'
+        url = url1 + self.token + url2
 
-        return  final_url
+        return url
 
 
-    def get_data(self):        # function pulling the datas from the GIS AIESEC EXPA API and creating a list of people
+    def getPeople(self):        # function pulling the datas from the GIS AIESEC EXPA API and creating a list of people
 
         # pull data from URL
-        fp = urllib.urlopen(self.get_url())
+        fp = urllib.urlopen(self.getURL())
         mybytes = fp.read()
 
         data = mybytes.decode("utf8")
@@ -74,7 +74,7 @@ class Expa:
             name = datastore['data'][i]['first_name'] + ' ' + datastore['data'][i]['last_name'] #We care about the full name
             id = datastore['data'][i]['id']
             email = datastore['data'][i]['email']
-            dob = Expa.trello_dater(datastore['data'][i]['dob'])  # dated in trello format
+            dob = Expa.trelloDater(datastore['data'][i]['dob'])  # dated in trello format
 
             if dob == None:  # can't give None as argument to Trello API - needs str
                 dob = 'N/A'
@@ -93,7 +93,7 @@ class Expa:
                 else:
                     phone = cc + p
 
-            sud = Expa.trello_dater(datastore['data'][i]['created_at'][0:10])
+            sud = Expa.trelloDater(datastore['data'][i]['created_at'][0:10])
             if sud == None:
                 sud = 'N/A'
             link = "https://expa.aiesec.org/people/" + str(id)  # link to person on expa for retrieving additional info
@@ -107,76 +107,62 @@ class Expa:
 
             people.append(Person(name, id, email, dob, phone, sud, link, status, managers))  # adds person to people list
 
-
-
-        print("DATABASE COUNT :::: " + str(len(people)) + " SIGN UPS SINCE FEB 1 2019")
-
-
-        for x in range(len(people)):
-            print people[x],
-
         return people
 
-    def get_special_people(self, specialids):
+    def getPerson(self, personId):
         """
-        function pulling the datas from the GIS AIESEC EXPA API and creating a list of special people who have to be pushed on Trello
-        :param specialID:
+        Get a specific person's data from the GIS EXPA API using his EXPA ID
+        :param personId:
         :return:
         """
 
-        IDs = specialids
-        special_people = []
+        url = 'https://gis-api.aiesec.org/v2/people/' + personId + '?access_token=' + self.token
 
-        for i in IDs :
+        fp = urllib.urlopen(url)
+        mybytes = fp.read()
 
+        data = mybytes.decode("utf8")
+        fp.close()
 
-            url = 'https://gis-api.aiesec.org/v2/people/' + i + '?access_token=' + self.token
+        datastore = json.loads(data)
 
-            fp = urllib.urlopen(url)
-            mybytes = fp.read()
+        if datastore['first_name'] == 'deleted':
+            raise Exception('Wanted person deleted his or her profile.')
 
-            data = mybytes.decode("utf8")
-            fp.close()
+        name = datastore['first_name'] + " " + datastore['last_name']
+        id = datastore['id']
+        email = datastore['email']
+        dob = Expa.trelloDater(datastore['dob'])  # dated in trello format
 
-            datastore = json.loads(data)
+        if dob == None:  # can't give None as argument to Trello API - needs str
+            dob = 'N/A'
 
-            if datastore['first_name'] == 'deleted':
-                continue
-            name = datastore['first_name'] + " " + datastore['last_name']
-            id = datastore['id']
-            email = datastore['email']
-            dob = Expa.trello_dater(datastore['dob'])  # dated in trello format
+        cc = datastore['contact_info']['country_code']
+        p = datastore['contact_info']['phone']
 
-            if dob == None:  # can't give None as argument to Trello API - needs str
-                dob = 'N/A'
-
-            cc = datastore['contact_info']['country_code']
-            p = datastore['contact_info']['phone']
-
-            if cc == None or not isinstance(cc, str):  # same logic as for DOB
-                if p == None or not isinstance(p, str):
-                    phone = 'N/A'
-                else:
-                    phone = p
+        if cc == None or not isinstance(cc, str):  # same logic as for DOB
+            if p == None or not isinstance(p, str):
+                phone = 'N/A'
             else:
-                if cc in p[0:4]:
-                    phone = p
-                else:
-                    phone = cc + p
+                phone = p
+        else:
+            if cc in p[0:4]:
+                phone = p
+            else:
+                phone = cc + p
 
-            status = datastore['status']
+        status = datastore['status']
 
-            managers = []
+        managers = []
 
-            for member in datastore['managers']:
-                managers.append(str(member['id']))
+        for member in datastore['managers']:
+            managers.append(str(member['id']))
 
-            sud = Expa.trello_dater(datastore['created_at'][0:10])
-            if sud == None:
-                sud = 'N/A'
-            link = "https://expa.aiesec.org/people/" + str(id)  # link to person on expa for retrieving additional info
+        sud = Expa.trelloDater(datastore['created_at'][0:10])
 
-            special_people.append(Person(name, id, email, dob, phone, sud, link, status, managers))  # adds person to special_people list
+        if sud == None:
+            sud = 'N/A'
 
-        return special_people
+        link = "https://expa.aiesec.org/people/" + str(id)  # link to person on expa for retrieving additional info
 
+        return Person(name, id, email, dob, phone, sud, link, status, managers)

@@ -8,20 +8,6 @@ class Trello:
     """ Information relative to a person wanting to leave on exchange.
     """
 
-    # manager library
-    # key is the expa ID, label is the trello ID --> { 'expa ID' :  'Trello ID' }
-    # Anais, Daniella, Gwenaelle, Jonas, Lucas, Adrien, Dylan, Jeremy, Morgane
-    team = {'1856304': '5cbae2c59d966941df8d9b5f',
-            '2108256': '5cb5dae61646158e92621248',
-            '2209383': '5cb739286550d048542b0081',
-            '2709530': '5cb4418c84476835eb75e95b',
-            '2154457': '5cb73b6e19cff548f71ca5b2',
-            '2064165': '5cb71e2e16cb0e546c301cef',
-            '1803727': '5cb71e2f7f653c623d9aaa1f',
-            '996944': '5cb85bdf02feea45bc7f89e1',
-            '3001465': '5cbae37ccb202f790b6d9297'}
-
-
     def __init__(self, token, key, idBoard):
         """
         Initialises the link with the Trello API
@@ -33,9 +19,28 @@ class Trello:
         self.key = key
         self.token = token
         self.idBoard = idBoard
+        self.listIds = self.getListIds()
 
+    def getListIds(self):
 
-    def update_people(self, people):
+        # Extraction from the Trello Dashboard Lists
+        # First, we need the List IDs and their respective names
+
+        url = "https://api.trello.com/1/boards/{}/lists".format(self.idBoard)
+
+        querystring = {"cards": "none", "filter": "open", "fields": "all",
+                       "key": self.key, "token": self.token}
+
+        response = json.loads(requests.request("GET", url, params=querystring).text)
+
+        listIds = {}
+
+        for list in response:
+            listIds[list['name']] = list['id']
+
+        return listIds
+
+    def updatePeople(self, people):
         """
         Get's all card information from Trello
 
@@ -43,11 +48,10 @@ class Trello:
         """
 
         # first, we need to check who's already accounted for on Trello
-        url = "https://api.trello.com/1/boards/5cb1f5a13ae5f15b88be935d/cards"
+        url = "https://api.trello.com/1/boards/{}/cards".format(self.idBoard)
 
         querystring = {"fields": "name,idMembers",  # can add idMembers to check appointed members
-                       "key": "448b14b4374aaa9429f4a8b979936e2b",
-                       "token": "9f9de4286e6a5f627f083dc3ca8fdf6dceae7307a06c5e9dcedda4212491a4e3"}
+                       "key": self.key, "token": self.token}
 
         data = json.loads(requests.request("GET", url, params=querystring).text)
 
@@ -59,17 +63,16 @@ class Trello:
                 person.trello = True
 
 
-    def push_trello(self, people) :
+    def pushPeopleToList(self, people, listId) :
         """
         Push new people on Trello
 
         :param people:
         """
 
-        idList_SignUp = '5cb1f6163e3fc475f62e9ff0'
+        # idList_SignUp = '5cb1f6163e3fc475f62e9ff0'
 
-        params = {"key": "448b14b4374aaa9429f4a8b979936e2b",
-                    "token": "9f9de4286e6a5f627f083dc3ca8fdf6dceae7307a06c5e9dcedda4212491a4e3"}
+        params = {"key": self.key, "token": self.token}
 
         response = []
 
@@ -79,102 +82,58 @@ class Trello:
 
                 url = "https://api.trello.com/1/cards"
 
-                description = "DOB: " + person.dob + '\n' + "Phone: " + person.phone + '\n' + "Email: " + person.email + '\n' + "SUD: " + person.sud + '\n'
+                description = "DOB: " + person.dob + '\n' + "Phone: " + person.phone\
+                              + '\n' + "Email: " + person.email + '\n' + "SUD: " + person.sud + '\n'
 
-                querystring = {'name' : person.name, 'desc' : description, 'pos' : 'top', 'due' : person.sud, 'dueComplete' : 'true', 'idList' : idList_SignUp }
+                querystring = {'name' : person.name, 'desc' : description, 'pos' : 'top',
+                               'due' : person.sud, 'dueComplete' : 'true', 'idList' : listId }
 
                 response.append(requests.request("POST", url, params=params, data=querystring))
 
-        print("TRELLO PUSH :::: " + str(len(response)) + " CARDS ADDED TO OGX CRM")
+        self.displayPush(len(response))
 
-
-    def push_trello_special(self, special_people, specialID):
+    def displayPush(self, numberOfCardsAdded):
         """
-        Push special IDs on trello
-        :param special_people:
-        :param specialID:
-        :return:
+        Displays message concerning Trello Push
+        :param numberOfCardsAdded: number of cards added to Trello
         """
 
-        idList_SignUp = '5cb1f6163e3fc475f62e9ff0'
+        print("\n ==== TRELLO PUSH ==== {} CARDS ADDED TO OGX CRM".format(numberOfCardsAdded))
 
-        params = {"key": "448b14b4374aaa9429f4a8b979936e2b",
-                  "token": "9f9de4286e6a5f627f083dc3ca8fdf6dceae7307a06c5e9dcedda4212491a4e3"}
-
-        IDs = specialID
-        specialpeople = special_people
-
-        response = []
-
-        for i in range(len(IDs)):
-
-            for person in specialpeople:
-
-                if person.expaId == int(IDs[i]):
-
-                    if not person.trello:  # If person in people is not on Trello CRM
-
-                        url = "https://api.trello.com/1/cards"
-
-                        person.trello = True
-
-                        description = "DOB: " + person.dob + '\n' + "Phone: " + person.phone + '\n' + "Email: " + person.email + '\n' + "SUD: " + person.sud + '\n'
-
-                        querystring = {'name': person.name, 'desc': description, 'pos': 'top', 'due': person.sud,
-                                       'dueComplete': 'true', 'idList': idList_SignUp}
-
-                        response.append(requests.request("POST", url, params=params, data=querystring))
-
-
-
-        print("TRELLO PUSH :::: " + str(len(response)) + " SPECIAL CARDS ADDED TO OGX CRM")
-
-
-    def get_SignedUp_people(self):
+    def getCardsFromList(self, listId):
         """
         Get a list of people present in the "Signed Up" list on Trello
-        :return:
+
+        :param listId: ID of the Trello List we want to fetch cards from
+        :return: cards: json loads list of people pulled from list
         """
 
-        SU_People = []
+        # SIGNED UP list ID '5cb1f6163e3fc475f62e9ff0' [TODO: integrate this function somewhere]
 
-
-        url = "https://api.trello.com/1/lists/"
-        idList = '5cb1f6163e3fc475f62e9ff0'             #ID of the "Signed Up" List
-
-        url1 = url + idList + "/cards"
+        url = "https://api.trello.com/1/lists/" + listId + "/cards"
 
         querystring = {"fields": "name",
-                       "key": "448b14b4374aaa9429f4a8b979936e2b",
-                       "token": "9f9de4286e6a5f627f083dc3ca8fdf6dceae7307a06c5e9dcedda4212491a4e3"}
+                       "key": self.key, "token": self.token}
 
-        SU_People = json.loads(requests.request("GET", url1, params=querystring).text)
+        cards = json.loads(requests.request("GET", url, params=querystring).text)
 
-        return SU_People
-
+        return cards
 
 
-
-    def Push_SignedUp_To_Assigned(self, id):
+    def moveCardToList(self, cardId, listId):
         """
-        People present in the "Signed up" list and who have been assigned to a manager different from the VP are pushed in the "Assigned" List
-
-        :return:
+        Moves a specific card to a specific list
+        People present in the "Signed up" list and who have been assigned to a manager different from the VP are
+        pushed in the "ASSIGNED" List
+        :param cardId: ID of the Trello card ID that needs to change list
+        :return: done or not
         """
 
-        self.idCard = id
+        url = "https://api.trello.com/1/cards" + '/' + cardId
 
-        key = "448b14b4374aaa9429f4a8b979936e2b"
-        token = "9f9de4286e6a5f627f083dc3ca8fdf6dceae7307a06c5e9dcedda4212491a4e3"
-        url = "https://api.trello.com/1/cards"
-        AssignedListID = "5cb2e4b0c7a5380b61388d80"
+        # AssignedListID is "5cb2e4b0c7a5380b61388d80" [TODO: integrate this function somewhere]
 
-        url1 = url + '/' + self.idCard
+        requests.put(url, params = dict(key=self.key, token=self.token), data=dict(idList=listId))
 
-        requests.put(url1, params = dict(key = key, token = token),data = dict(idList = AssignedListID))
-
-
-
-
-
-
+        # TODO: find a way to return True if successful and False if unsuccessful
+        # return
