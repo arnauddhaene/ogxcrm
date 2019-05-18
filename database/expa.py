@@ -48,7 +48,6 @@ class Expa:
 
         return url
 
-
     def getPeople(self):        # function pulling the datas from the GIS AIESEC EXPA API and creating a list of people
 
         # pull data from URL

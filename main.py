@@ -19,12 +19,12 @@ ogxTeam = {'1856304': '5cbae2c59d966941df8d9b5f',
            '3001465': '5cbae37ccb202f790b6d9297'}
 
 # initialise the dabatase
-expaToken = "f10c1152388a3b0525db0c80be36e2c2670a0fd5e951bf8ce6f58d3775a7067c"
+expaToken = "3bdedc112ffe486b6d422520540ebe394f118b8d4f406934f4918bb6ba6f5fa8"
 
-additionalIDs = ['2614893']
+additionalIDs = []
 
 # constant token variables
-trelloToken = "c9d4a9e119e80ad8b763a129418a9f534b7fc8abceee642538083b87f2d65077"
+trelloToken = "9f9de4286e6a5f627f083dc3ca8fdf6dceae7307a06c5e9dcedda4212491a4e3"
 trelloKey = "448b14b4374aaa9429f4a8b979936e2b"
 idBoard = "5cb1f5a13ae5f15b88be935d"
 

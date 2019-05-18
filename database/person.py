@@ -46,4 +46,4 @@ class Person:
 
     def __repr__(self):
 
-        return 'Nom : {} | SUD : {} | Status : {} | Managers : {}\n'.format(self.name, self.sud, self.status, self.managers)
+        return '\nNom : {} | SUD : {} | Status : {} | Managers : {}'.format(self.name, self.sud, self.status, self.managers)

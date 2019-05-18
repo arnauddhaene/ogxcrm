@@ -86,7 +86,7 @@ class Trello:
                               + '\n' + "Email: " + person.email + '\n' + "SUD: " + person.sud + '\n'
 
                 querystring = {'name' : person.name, 'desc' : description, 'pos' : 'top',
-                               'due' : person.sud, 'dueComplete' : 'true', 'idList' : listId }
+                               'due' : person.sud, 'dueComplete': 'true', 'idList': listId }
 
                 response.append(requests.request("POST", url, params=params, data=querystring))
 
@@ -98,7 +98,7 @@ class Trello:
         :param numberOfCardsAdded: number of cards added to Trello
         """
 
-        print("\n ==== TRELLO PUSH ==== {} CARDS ADDED TO OGX CRM".format(numberOfCardsAdded))
+        print("\n ===== TRELLO PUSH ===== {} CARDS ADDED TO OGX CRM".format(numberOfCardsAdded))
 
     def getCardsFromList(self, listId):
         """
