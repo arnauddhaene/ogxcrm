@@ -3,8 +3,7 @@
 
 from person import Person
 import datetime
-import urllib
-import json
+import ExpaService
 
 class Expa:
     """ Information relative to a person wanting to leave on exchange.
@@ -15,7 +14,7 @@ class Expa:
         Initialises the person
         """
 
-        self.token = token
+        self.expaService = ExpaService(token)
 
     @staticmethod
     def expaDater(day, month, year):       # function making the conversion to the date format wanted in the expa URL
@@ -33,23 +32,8 @@ class Expa:
         return newdate[1] + '/' + newdate[0] + '/' + newdate[2]  # Trello uses american date formatting
 
 
-    def getURL(self):        # function creating the URL to pull SIGN UP data - following the GIS AIESEC EXPA API guidelins
-
-        # today's date
-        d = datetime.datetime.today()
-        # converted into ['MM', 'DD', 'YYYY'] format that our lambda function loves
-        end_date = [d.strftime('%d'), d.strftime('%m'), d.strftime('%Y')]
-
-        url1 = "https://gis-api.aiesec.org/v2/people?access_token="
-        start_date = ['01', '02', '2019']
-        url2 = '&page=1&per_page=400&filters[registered]%5Bfrom%5D=' + Expa.expaDater(*start_date) +\
-               '&filters[registered]%5Bto%5D=' + Expa.expaDater(*end_date) + '&filters[is_aiesecer]=false'
-        url = url1 + self.token + url2
-
-        return url
-
     def getPeople(self):        # function pulling the datas from the GIS AIESEC EXPA API and creating a list of people
-
+        """
         # pull data from URL
         fp = urllib.urlopen(self.getURL())
         mybytes = fp.read()
@@ -63,6 +47,24 @@ class Expa:
         datastore = json.loads(data)
 
         print(datastore)
+        """
+
+        # today's date
+        d = datetime.datetime.today()
+        # converted into ['MM', 'DD', 'YYYY'] format that our lambda function loves
+        start_date = ['01', '02', '2019']
+        end_date = [d.strftime('%d'), d.strftime('%m'), d.strftime('%Y')]
+
+        url = "/people"
+        params = {
+            "page": 1,
+            "per_page": 400,
+            "filters[registered][from]": Expa.expaDater(*start_date),
+            "filters[registered][to]": Expa.expaDater(*end_date),
+            "filters[is_aiesecer]": "false"
+        }
+
+        datastore = self.expaService.get(url, params)
 
         # make database
         people = []
@@ -95,7 +97,7 @@ class Expa:
             sud = Expa.trelloDater(datastore['data'][i]['created_at'][0:10])
             if sud == None:
                 sud = 'N/A'
-            link = "https://expa.aiesec.org/people/" + str(id)  # link to person on expa for retrieving additional info
+            link = "https://expa.aiesec.org/people/{}".format(id)  # link to person on expa for retrieving additional info
 
             status = datastore['data'][i]['status']
 
@@ -115,15 +117,16 @@ class Expa:
         :return:
         """
 
-        url = 'https://gis-api.aiesec.org/v2/people/' + personId + '?access_token=' + self.token
-
+        """
         fp = urllib.urlopen(url)
         mybytes = fp.read()
 
         data = mybytes.decode("utf8")
         fp.close()
+        """
 
-        datastore = json.loads(data)
+        url = '/people/' + personId
+        datastore = self.expaService.get(url)
 
         if datastore['first_name'] == 'deleted':
             raise Exception('Wanted person deleted his or her profile.')
