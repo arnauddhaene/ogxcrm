@@ -3,7 +3,7 @@
 
 from person import Person
 import datetime
-import ExpaService
+from apiService import ExpaService
 
 class Expa:
     """ Information relative to a person wanting to leave on exchange.

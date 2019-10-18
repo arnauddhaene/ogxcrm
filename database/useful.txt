@@ -1,0 +1,142 @@
+"id": 6104,
+"mc_id": 1558,
+"name": "Lausanne",
+"google_place_id": "ChIJ5aeJzT4pjEcRXu7iysk_F-s",
+
+cd650d2570db6297845a42f7d66569d1a5ec4d6abba73bf50c8135d57b7309b4
+
+https://gis-api.aiesec.org/v2/committees/869
+{
+  "id": 869,
+  "name": "LAUSANNE",
+  "full_name": "AIESEC in LAUSANNE",
+  "email": "info.lausanne@aiesec.ch",
+  "tag": "LC",
+  "parent_id": 1558,
+  "signup_link": "http://bit.ly/BepartofAIESEC",
+  "country": "Switzerland",
+  "url": "https://gis.aiesec.org/v2/committees/869",
+  "allow_online_payments": null,
+  "account_name": null,
+  "eligible_for_online_payment": null,
+  "parent": {
+    "id": 1558,
+    "name": "Switzerland",
+    "full_name": "AIESEC in Switzerland",
+    "email": "info@aiesec.ch",
+    "tag": "MC",
+    "parent_id": 1629,
+    "signup_link": "https://aiesec.ch/membership",
+    "country": "Europe",
+    "url": "https://gis.aiesec.org/v2/committees/1558"
+  },
+  "address_info": {
+    "address_1": "UNIL - Anthropôle 1198",
+    "address_2": "",
+    "postcode": "CH-1015",
+    "city": "Lausanne",
+    "country": "Switzerland",
+    "coordinates": {
+      "latitude": "46.5210895",
+      "longitude": "6.5801606"
+    },
+    "city_name": null,
+    "country_name": null
+  },
+  "contact_info": {
+    "website": "aiesec.ch",
+    "email": "info.lausanne@aiesec.ch",
+    "phone": "",
+    "facebook": "facebook.com/AIESECinSwitzerland",
+    "twitter": null,
+    "instagram": "aiesec_lausanne",
+    "linkedin": "https://www.linkedin.com/company/aiesec-in-lausanne/",
+    "country_code": null
+  },
+  "profile_photo_urls": {
+    "original": "https://cdn-expa.aiesec.org/gis-img/missing_profile_l.svg",
+    "medium": "https://cdn-expa.aiesec.org/gis-img/missing_profile_l.svg",
+    "thumb": "https://cdn-expa.aiesec.org/gis-img/missing_profile_l.svg"
+  },
+  "cover_photo_urls": "https://s3.eu-west-1.amazonaws.com/gis-production-eu/profile_photos/original/1410604836.jpg?1410604836",
+  "terms": [
+    {
+      "id": 91,
+      "short_name": "14/15",
+      "start_date": "2014-08-01",
+      "end_date": "2015-07-31"
+    },
+    {
+      "id": 1558,
+      "short_name": "2015",
+      "start_date": "2015-01-01",
+      "end_date": "2015-07-31"
+    },
+    {
+      "id": 3226,
+      "short_name": "2016",
+      "start_date": "2016-01-01",
+      "end_date": "2016-12-31"
+    },
+    {
+      "id": 4901,
+      "short_name": "2017",
+      "start_date": "2017-07-15",
+      "end_date": "2018-07-14"
+    },
+    {
+      "id": 9093,
+      "short_name": "18/19",
+      "start_date": "2018-02-01",
+      "end_date": "2019-01-31"
+    },
+    {
+      "id": 10783,
+      "short_name": "19/20",
+      "start_date": "2019-01-02",
+      "end_date": "2020-01-02"
+    }
+  ],
+  "suboffices": [],
+  "payments": {},
+  "reviews": {
+    "score": 9,
+    "count": 3
+  },
+  "programme_fees": [],
+  "default_account_manager": {
+    "id": 69332,
+    "full_name": "Mélani Ramírez",
+    "email": "person-89f93413ca74817a8533c10b0e309f575169988638b0a0cde01b18338cb61891@inbound.aiesec.org",
+    "home_lc": {
+      "id": 1077,
+      "name": "Tec CEM",
+      "country": "Mexico"
+    },
+    "profile_photo_url": "https://s3.eu-west-1.amazonaws.com/gis-production-eu/profile_photos/medium/1456075571.JPG?1456075571",
+    "cover_photo_url": "https://s3.eu-west-1.amazonaws.com/gis-production-eu/profile_photos/original/1452993885.jpg?1452993885",
+    "contact_info": {
+      "website": null,
+      "email": "melani.ramirez@aiesec.net",
+      "phone": "+5215545452144",
+      "facebook": null,
+      "twitter": null,
+      "instagram": null,
+      "linkedin": null,
+      "country_code": ""
+    }
+  },
+  "permissions": {
+    "can_read": false,
+    "can_update": false,
+    "can_delete": false,
+    "invite_people": false
+  },
+  "created_at": "2014-08-12T22:13:11Z",
+  "updated_at": "2019-08-06T21:15:05Z"
+}
+
+
+
+my id: "3886217"
+current_positions: [{id: "598262", office: {id: "869", tag: "LC"}}]

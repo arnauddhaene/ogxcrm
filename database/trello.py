@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -- coding: utf-8 --
 
-import TrelloService
+from apiService import TrelloService
 
 class Trello:
     """ Information relative to a person wanting to leave on exchange.
@@ -18,6 +18,9 @@ class Trello:
         self.key = key
         self.token = token
         self.idBoard = "5cb1f5a13ae5f15b88be935d"
+        self.listAssignedId = "5cb2e4b0c7a5380b61388d80"
+        self.listSignedUpId = "5cb1f6163e3fc475f62e9ff0"
+        self.listFirstEmailSent = "5cb1f72f2475f55104264aed"
         self.trelloService = TrelloService()
         self.listIds = self.getListIds()
 
@@ -108,9 +111,13 @@ class Trello:
 
         # SIGNED UP list ID '5cb1f6163e3fc475f62e9ff0' [TODO: integrate this function somewhere]
         url = "/lists/" + listId + "/cards"
-        params = {"fields": "name"}
+        params = { "fields": "name,idMembers,desc" }
 
         return self.trelloService.get(url, params)
+
+    def getBoardMembers(self):
+        url = "/boards/" + self.idBoard + "/members"
+        return self.trelloService.get(url)
 
     def moveCardToList(self, cardId, listId):
         """
