@@ -1,42 +1,44 @@
 #!/usr/bin/python
 # -- coding: utf-8 --
 
-from apiService import TrelloService
+from database.apiService import ApiService
 
-class Trello:
-    """ Information relative to a person wanting to leave on exchange.
+class TrelloService(ApiService):
+    """
+    API service for Trello resources
     """
 
-    def __init__(self, token, key, idBoard):
-        """
-        Initialises the link with the Trello API
+    def __init__(self):
+        baseUrl = "https://api.trello.com/1"
+        params = {
+            "key": "f96139525bca604d080b712989ebc84c", #"448b14b4374aaa9429f4a8b979936e2b",
+            "token": "f00985a288931c8148e3731dd2df088c2c3a111a2bcdf6a01e8cd5b0cf01cb16"  #"9f9de4286e6a5f627f083dc3ca8fdf6dceae7307a06c5e9dcedda4212491a4e3"
+        }
 
-        :param key: Given by Trello API
-        :param token: Given by Trello API
-        :param idBoard: Trello board ID
-        """
-        self.key = key
-        self.token = token
+        super().__init__(baseUrl, params)
+
         self.idBoard = "5cb1f5a13ae5f15b88be935d"
-        self.listAssignedId = "5cb2e4b0c7a5380b61388d80"
         self.listSignedUpId = "5cb1f6163e3fc475f62e9ff0"
+        self.listAssignedId = "5cb2e4b0c7a5380b61388d80"
         self.listFirstEmailSent = "5cb1f72f2475f55104264aed"
-        self.trelloService = TrelloService()
-        self.listIds = self.getListIds()
+        # self.listIds = self.getListIds()
 
     def getListIds(self):
-        # Extraction from the Trello Dashboard Lists
-        # First, we need the List IDs and their respective names
-        url = "/boards/" + self.idBoard + "/lists"
+        """
+        Get all list ids from OGX board
+        """
+
+        url = f"/boards/{self.idBoard}/lists"
         params = {
             "cards": "none",
             "filter": "open",
             "fields": "all"
         }
 
-        response = self.trelloService.get(url, params)
+        response = self.get(url, params)
         listIds = {}
 
+        # map response to {name, id} pair
         for list in response:
             listIds[list['name']] = list['id']
 
@@ -44,95 +46,106 @@ class Trello:
 
     def updatePeople(self, people):
         """
-        Get's all card information from Trello
+        Get all card information from Trello
 
-        :param people: people from expa
+        :param people: people from EPXA
         """
+        data = self.getAllCards()
 
-        # first, we need to check who's already accounted for on Trello
-        url = "/boards/" + self.idBoard + "/cards"
-        params = {"fields": "name,idMembers"}  # can add idMembers to check appointed members
-
-        data = self.trelloService.get(url, params)
-
-        # noms des personnes déjà dans le système (ceux sur Trello)
-        names = [element['name'].encode('utf-8').strip() for element in data]
+        # people already on Trello
+        names = [person['name'].encode('utf-8').strip() for person in data]
 
         for person in people:
             if person.name in names:
                 person.trello = True
 
-
-    def pushPeopleToList(self, people, listId) :
+    def postNewPeople(self, people):
         """
         Push new people on Trello
 
-        :param people:
+        :param people: list of people to add to Trello
         """
-
-        # idList_SignUp = '5cb1f6163e3fc475f62e9ff0'
-        url = "/cards"
-        response = []
-
+        pushed = 0
         for person in people:
-            if not person.trello:    # If person in people is not on Trello CRM
+            if not person.trello:
+                # build description for Trello card
+                description = "\n".join((
+                     "DOB: " + person.dob,
+                     "Phone: " + person.phone,
+                     "Email: " + person.email,
+                     "SUD: " + person.sud
+                ))
 
-                description = "DOB: " + person.dob + '\n' + "Phone: " + person.phone\
-                              + '\n' + "Email: " + person.email + '\n' + "SUD: " + person.sud + '\n'
-
+                # build body for API call
                 body = {
-                    'name' : person.name,
-                    'desc' : description,
-                    'pos' : 'top',
-                    'due' : person.sud,
-                    'dueComplete': 'true',
-                    'idList': listId
+                    'name'          : person.name,
+                    'desc'          : description,
+                    'pos'           : 'top',
+                    'due'           : person.sud,
+                    'dueComplete'   : 'true',
+                    'idList'        : self.listSignedUpId
                 }
 
-                response.append(self.trelloService.post(url, body))
+                result = self.post("/cards", body, toJson=False)
+                if not result.ok:
+                    print(f"Error creating new card for {person.name}: {result.text} (Status {result.status_code})")
+                else:
+                    pushed += 1
 
-        self.displayPush(len(response))
+        self.displayPush(pushed)
 
-    def displayPush(self, numberOfCardsAdded):
+    def displayPush(self, nNewCards):
         """
         Displays message concerning Trello Push
         :param numberOfCardsAdded: number of cards added to Trello
         """
 
-        print("\n ===== TRELLO PUSH ===== {} CARDS ADDED TO OGX CRM".format(numberOfCardsAdded))
+        print("\n ===== TRELLO PUSH ===== {} CARDS ADDED TO OGX CRM".format(nNewCards))
 
     def getCardsFromList(self, listId):
         """
-        Get a list of people present in the "Signed Up" list on Trello
+        Get cards present in a list
 
-        :param listId: ID of the Trello List we want to fetch cards from
-        :return: cards: json loads list of people pulled from list
+        :param listId: ID of the Trello list we want to fetch cards from
+
+        :return: list of cards pulled from list
         """
 
-        # SIGNED UP list ID '5cb1f6163e3fc475f62e9ff0' [TODO: integrate this function somewhere]
-        url = "/lists/" + listId + "/cards"
+        url = f"/lists/{listId}/cards"
         params = { "fields": "name,idMembers,desc" }
 
-        return self.trelloService.get(url, params)
+        return self.get(url, params)
 
-    def getBoardMembers(self):
-        url = "/boards/" + self.idBoard + "/members"
-        return self.trelloService.get(url)
+    def getAllPeople(self): return self.getAllCards()
+    def getAllCards(self):
+        """
+        Get all cards in the OGX board
+        """
+
+        url = f"/boards/{self.idBoard}/cards"
+        params = { "fields": "name,idMembers" }
+
+        return self.get(url, params)
+
+    def getAllMembers(self):
+        """
+        Get all members in the OGX board
+        """
+
+        return self.get(f"/boards/{self.idBoard}/members")
 
     def moveCardToList(self, cardId, listId):
         """
-        Moves a specific card to a specific list
-        People present in the "Signed up" list and who have been assigned to a manager different from the VP are
-        pushed in the "ASSIGNED" List
-        :param cardId: ID of the Trello card ID that needs to change list
-        :return: done or not
+        Moves a specific card to a specific list.
+
+        :param cardId: id of the Trello card that needs to change list
+        :param listId: id of the Trello list to move the card to
+
+        :return: success of operation
         """
 
-        url = "/cards/" + cardId
+        url = f"/cards/{cardId}"
         body = { "idList": listId }
 
-        # AssignedListID is "5cb2e4b0c7a5380b61388d80" [TODO: integrate this function somewhere]
-        self.trelloService.put(url, body)
-
-        # TODO: find a way to return True if successful and False if unsuccessful
-        # return
+        result = self.put(url, body)
+        return result.ok

@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -- coding: utf-8 --
 
-
-from database import Database
+from database.database import Database
 
 # manager library
 # key is the expa ID, label is the trello ID --> { 'expa ID' :  'Trello ID' }
@@ -19,15 +18,8 @@ ogxTeam = {'1856304': '5cbae2c59d966941df8d9b5f',
            '3001465': '5cbae37ccb202f790b6d9297'}
 
 # initialise the dabatase
-expaToken = "3bdedc112ffe486b6d422520540ebe394f118b8d4f406934f4918bb6ba6f5fa8"
-
 additionalIDs = []
 
-# constant token variables
-trelloToken = "9f9de4286e6a5f627f083dc3ca8fdf6dceae7307a06c5e9dcedda4212491a4e3"
-trelloKey = "448b14b4374aaa9429f4a8b979936e2b"
-idBoard = "5cb1f5a13ae5f15b88be935d"
-
-db = Database(expaToken, trelloToken, trelloKey, idBoard, additionalIDs if len(additionalIDs) != 0 else None)
+db = Database("ae29bf9d23f972c8031afa4de2f6fc1af5946514739f2f0fecf79bfdd8105689", additionalIDs if len(additionalIDs) != 0 else None)
 db.get()
 db.push()

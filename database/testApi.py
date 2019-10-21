@@ -1,4 +1,3 @@
-from apiService import *
 from database import Database
 from getpass import getpass
 import xlwt
@@ -23,8 +22,9 @@ print(result.cookies)
 print(result.request)
 """
 
-#expaService = ExpaService("4812f7da1cab6855b96edeaf2072d2adb6713966e90d29405953a1e0b26275e3")
+#expaService = ExpaService("dadae54a94265f18ae6d6dafb4fa5047ceadb22c3dddc682b6b66323a304d6be")
 #expaService.getAndExportCurrentMembers("members.xls", verbose=True)
 
-db = Database("4812f7da1cab6855b96edeaf2072d2adb6713966e90d29405953a1e0b26275e3", None, None, None)
-db.moveFromAssigned()
+db = Database("ae29bf9d23f972c8031afa4de2f6fc1af5946514739f2f0fecf79bfdd8105689")
+db.get()
+db.push()

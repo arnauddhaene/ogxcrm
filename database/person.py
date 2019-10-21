@@ -5,12 +5,12 @@ class Person:
     """ Information relative to a person wanting to leave on exchange.
     """
 
-    def __init__(self, name, expaid, email, dob, phone, sud, link, status, managers=None, trello=False, trelloId=None):
+    def __init__(self, id, name, email, dob, phone, sud, link, status, managers=None, trello=False, trelloId=None, **args):
         """
         Initializes the instance of the representation of a person in the database
 
+        :param id: EXPA id
         :param name:
-        :param expaId:
         :param email:
         :param dob:
         :param phone:
@@ -22,8 +22,8 @@ class Person:
         :param trelloId:
         """
 
+        self.id = id
         self.name = name.encode('utf-8').strip()
-        self.expaId = expaid
         self.email = email
         self.dob = dob
         self.phone = phone
@@ -34,6 +34,9 @@ class Person:
         self.trello = trello
         self.trelloId = trelloId
 
+        # if there are any additional arguments
+        for key, value in args.items():
+            setattr(self, key, value)
 
     def __eq__(self, other):
         """
@@ -45,5 +48,4 @@ class Person:
         return self.id == other.id
 
     def __repr__(self):
-
         return '\nNom : {} | SUD : {} | Status : {} | Managers : {}'.format(self.name, self.sud, self.status, self.managers)
