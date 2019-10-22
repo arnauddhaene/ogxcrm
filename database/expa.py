@@ -110,32 +110,18 @@ class ExpaService(ApiService):
         return Person(**person)
 
     @staticmethod
-    def jsonToMember(member, json):
+    def jsonToMember(member, person):
         """
         Converts a member into a Person object
 
         :param member: JSON representation of member from API
-        :param json: JSON representation of person from API
+        :param person: Person object of person from API
         :returns: a Person object
         """
 
-        if member['person']['first_name'] == 'deleted' or json['first_name'] == 'deleted':
+        if member['person']['first_name'] == 'deleted' or person.first_name == 'deleted':
             # we skip people who have been deleted
             return None
-
-        # validate a given country code and phone number
-        # cc or phone might be None
-        def jsonToPhone(cc, p):
-            phone = ""
-            if cc:
-                phone = cc
-            if p:
-                phone += p
-
-            if not phone:
-                return 'N/A'
-            else:
-                return phone
 
         member = {
             # expa id
@@ -151,13 +137,13 @@ class ExpaService(ApiService):
             # date of birth
             "dob"               : member["person"]["dob"],
             # phone number
-            "phone"             : jsonToPhone(json['country_code'], json['phone']),
+            "phone"             : person.phone,
             # date they joined AIESEC
             "sud"               : ExpaService.toTrelloDate(member["created_at"][0:10]),
             # URL to expa profile
             "link"              : "https://expa.aiesec.org/people/{}".format(member["id"]),
             # status
-            'status'            : json['status'],
+            'status'            : person.status,
             # team name
             "team"              : member["team"]["title"],
             # role within their team, e.g., VP or Member
@@ -183,6 +169,7 @@ class ExpaService(ApiService):
             url = "/people"
             params = {
                 "page": 1,
+                "per_page": 20,
                 "filters[registered][from]": start_date,
                 "filters[registered][to]": end_date,
                 "filters[is_aiesecer]": "false"
@@ -191,14 +178,18 @@ class ExpaService(ApiService):
             # load first page of results
             result = self.get(url, params)
             nPages = result["paging"]["total_pages"]
+            print(f"There are {nPages} pages, totalling {nPages * 20} people")
+
 
             # fill people array with first values
             people = result["data"]
             if nPages > 1:
                 # get other pages
                 for page in range(2, nPages + 1):
+                    print(f"Loading page {page}")
                     params["page"] = page
-                    people.extend(self.get(url, params)["data"])
+                    response = self.get(url, params)
+                    people.extend(response["data"])
 
             # make objects
             peopleObjs = []
@@ -257,7 +248,7 @@ class ExpaService(ApiService):
 
             # make objects
             memberObjs = []
-            for json in people:
+            for json in members:
                 # convert JSON to object
                 person = self.jsonToPerson(json)
                 if person:
@@ -340,13 +331,40 @@ class ExpaService(ApiService):
 
                 # get person obj for more info
                 if verbose: print("Fetching info on {}".format(m["person"]["full_name"]))
-                person = self.getPerson(id)
+                person = self.getMember(id)
 
                 members.append(self.jsonToMember(m, person))
 
             if verbose: print("\n")
 
         return members
+
+    def exportAllMembers(self, filename):
+        headers = ["value", "email", "aiesec_email", "phone"]
+        members = self.getAllMembers()
+        memberIds = [ m.id for m in members ]
+        comm = []
+
+        # get all committee people
+        terms = self.getTerms(self.committee_id)["data"]
+        for term in terms:
+            termId = term["id"]
+            committee = self.getCommitteeMembers(self.committee_id, termId)["data"]
+            comm.extend(committee)
+
+        # only keep unique people
+        # and add phone number
+        members_clean = []
+        ids_clean = []
+        for person in comm:
+            if person["id"] not in ids_clean:
+                for member in members:
+                    if person["id"] == member.id:
+                        person["phone"] = member.phone
+                members_clean.append(person)
+                ids_clean.append(person["id"])
+
+        self.toExcel(filename, headers, members_clean)
 
     def getAndExportCurrentMembers(self, filename, verbose=False):
         headers = ["name", "sud", "team", "role", "performance", "link", "LDA", "email", "aiesec_email", "secondary_email", "phone", "dob", "university", "study_area", "study_year", "IXP"]
@@ -361,7 +379,12 @@ class ExpaService(ApiService):
             key = headers[j]
             sheet.write(0, j, key) # write key as column title
             for i in range(len(data)):
-                if key in data[i]:
+                if isinstance(data[i], Person):
+                    if hasattr(data[i], key):
+                        sheet.write(i+1, j, getattr(data[i], key) or " ")
+                    else:
+                        sheet.write(i+1, j, " ")
+                elif key in data[i]:
                     sheet.write(i+1, j, data[i][key] or " ")
                 else:
                     sheet.write(i+1, j, " ")

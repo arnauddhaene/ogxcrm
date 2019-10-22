@@ -53,7 +53,7 @@ class TrelloService(ApiService):
         data = self.getAllCards()
 
         # people already on Trello
-        names = [person['name'].encode('utf-8').strip() for person in data]
+        names = [person['name'].strip() for person in data]
 
         for person in people:
             if person.name in names:
@@ -147,5 +147,5 @@ class TrelloService(ApiService):
         url = f"/cards/{cardId}"
         body = { "idList": listId }
 
-        result = self.put(url, body)
+        result = self.put(url, body, toJson=False)
         return result.ok

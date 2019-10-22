@@ -3,8 +3,9 @@
 
 from database.trello import TrelloService
 from database.expa import ExpaService
+from database.email import Email
 from fuzzywuzzy import process
-import yagmail
+from unidecode import unidecode
 
 class Database:
     """ Information relative to a person wanting to leave on exchange.
@@ -24,6 +25,11 @@ class Database:
         self.peopleTrello = []
         self.additionalIDs = additionalIDs
 
+    @staticmethod
+    def effify(non_f_str: str):
+        return eval(f'f"""{non_f_str}"""')
+
+
     def get(self):
         """
         Get's all information concerning people
@@ -38,10 +44,10 @@ class Database:
         # get all additional people using their specific EXPA IDs
         if self.additionalIDs is not None:
             for personId in self.additionalIDs:
-                self.peopleExpa.append(self.expa.getPerson(personId))
+                self.peopleExpa.append(self.expa.getNonMemberPerson(personId))
 
         # update people objects
-        names = [person['name'].encode('utf-8').strip() for person in self.peopleTrello]
+        names = [person['name'].strip() for person in self.peopleTrello]
         for person in self.peopleExpa:
             if person.name in names:
                 person.trello = True
@@ -83,28 +89,30 @@ class Database:
         # get all members on Trello -> should be OGX
         trelloMembers = self.trello.getAllMembers()
         # get all teams on EXPA
-        expaTeams = self.expaService.getCurrentTeams()["data"]
+        expaTeams = self.expa.getCurrentTeams()["data"]
 
         for team in expaTeams:
             if "outgoing" in team["title"].lower():
                 # we found OGX
                 # get member info from EXPA
-                expaMembers = self.expaService.getTeamMembers(team["id"])["data"]
+                expaMembers = self.expa.getTeamMembers(team["id"])["data"]
                 # get person info from EXPA
-                expaMembersPeople = [ self.expaService.getPerson(m["person"]["id"]) for m in expaMembers ]
+                expaMembersPeople = [ self.expa.getMember(m["person"]["id"]) for m in expaMembers ]
 
                 # build Person objects
                 ogx = [ ExpaService.jsonToMember(expaMembers[i], expaMembersPeople[i]) for i in range(len(expaMembers)) ]
-                expaMembersNames = [ person.name.lower() for person in ogx ]
+                expaMembersNames = [ unidecode(person.name.lower()) for person in ogx ]
 
                 for mTrello in trelloMembers:
                     # we're trying to find the EXPA member whose name matches that of a Trello member
-                    query = mTrello["fullName"].lower()
+                    query = unidecode(mTrello["fullName"].lower())
                     match = process.extractOne(query, expaMembersNames) # (name, score)
 
-                    if match[1] > 90:
+                    if match[1] > 80:
                         idx = expaMembersNames.index(match[0])
                         if idx not in matchedOgxIndices:
+                            print(f"[ok] Matched Trello user {mTrello['fullName']} with EXPA user {ogx[idx].name}")
+
                             # Trello member has not been linked to EXPA member yet
                             matchedOgxIndices.append(idx)
 
@@ -115,11 +123,11 @@ class Database:
                             ogxMembers.append(ogx[idx])
                         else:
                             # Trello member is matched to EXPA user that was already linked
-                            print("Error: duplicate match for Trello user {}".format(mTrello["fullName"]))
+                            print("[error] Error: duplicate match for Trello user {}".format(mTrello["fullName"]))
 
                     else:
                         # No name match found between Trello member and EXPA members
-                        print("No EXPA match for Trello user {}".format(mTrello["fullName"]))
+                        print("[warning] No EXPA match for Trello user {}".format(mTrello["fullName"]))
 
                 break
 
@@ -135,46 +143,25 @@ class Database:
             memberId = cardMembers[0]
             for member in ogxMembers:
                 if member.trelloId == memberId:
-                    # useful email attributes
-                    email_from = "info.lausanne@aiesec.ch"
-                    email_reply_to = member.aiesec_email
-                    email_reply_to_name = member.name
-                    email_reply_to_phone = member.phone
-
-                    headers = {
-                        "Cc": email_reply_to,
-                        "Reply-To": f"{email_reply_to_name} <{email_reply_to}>"
-                    }
-
                     # extract data from card description
-                    data = { "name": card["name"] }
+                    to = { "name": card["name"].split(" ")[0] }
                     for info in card["desc"].split("\n"):
                         split = info.split(":")
-                        data[split[0].strip().lower()] = split[1].strip()
+                        to[split[0].strip().lower()] = split[1].strip()
 
-                    # more useful email attributes
-                    name_to = card["name"]
-                    first_name_to = name_to.split(" ")[0]
-                    email_to = data["email"]
+                    # email subject
+                    subject = "Bienvenue | AIESEC"
 
-                    print(f"Sending email to {name_to} <{email_to}>")
+                    # email headers
+                    headers = {
+                        "Cc": member.aiesec_email,
+                        "Reply-To": f"{member.name} <{member.aiesec_email}>"
+                    }
 
-                    # build email body
-                    body = f"""<!doctype HTML><html><head></head><body><p>Hello {first_name_to},<br/>
-Je m’appelle {member.first_name}, je suis membre du comité AIESEC Lausanne. Je me permets de t’écrire suite à ton passage à notre stand à l’amphimax ce mercredi!
-Comme tu le sais on organise de stages de volontariat ainsi que des stages professionnels à travers le monde entier, je suis là pour répondre à tes questions et te conseiller pour trouver le stage idéal pour toi. Nos partenaires en ce moment incluent Costa Rica, Vietnam, Egypte, Turquie, Argentine, Kenya, Uganda, Mexique, Pérou, Inde, et Colombie !
-Je t’invite à t’inscrire sur notre site internet (<a href="https://aiesec.ch" target="_blank">aiesec.ch</a>) et à m’envoyer un message au <a href="tel:{email_reply_to_phone}">{email_reply_to_phone}</a>. Ce serait super qu’on fixe un rendez-vous afin de pouvoir en discuter.<br/>
-Salutations,
-{email_reply_to_name}</p></body></html>"""
-
-                    # send email
-                    yag = yagmail.SMTP(user="info.lausanne@aiesec.ch",password="Executiveboard1920")
-                    yag.send(
-                        to=email_to,
-                        subject="Bienvenue | AIESEC",
-                        contents=body,
-                        headers=headers
-                    )
+                    # info
+                    print(f"Sending email to {card['name']} <{to['email']}>")
+                    email = Email(template="templates/ogxbooth.html")
+                    email.send(member, to, subject, headers)
 
                     # move card to next list
                     self.trello.moveCardToList(card["id"], self.trello.listFirstEmailSent)

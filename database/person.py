@@ -23,7 +23,7 @@ class Person:
         """
 
         self.id = id
-        self.name = name.encode('utf-8').strip()
+        self.name = name.strip()
         self.email = email
         self.dob = dob
         self.phone = phone

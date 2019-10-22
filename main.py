@@ -2,6 +2,7 @@
 # -- coding: utf-8 --
 
 from database.database import Database
+from database.expa import ExpaService
 
 # manager library
 # key is the expa ID, label is the trello ID --> { 'expa ID' :  'Trello ID' }
@@ -20,6 +21,11 @@ ogxTeam = {'1856304': '5cbae2c59d966941df8d9b5f',
 # initialise the dabatase
 additionalIDs = []
 
-db = Database("ae29bf9d23f972c8031afa4de2f6fc1af5946514739f2f0fecf79bfdd8105689", additionalIDs if len(additionalIDs) != 0 else None)
-db.get()
-db.push()
+db = Database("ba3ed2678ed81779e582848a4690da3dafbb9bc34933f4e2a7c24e68812e5864", additionalIDs if len(additionalIDs) > 0 else None)
+
+#db.get()
+#db.push()
+
+#db.moveFromAssigned()
+expa = ExpaService("7ff684f1636708fed3ba2fb266020b3320edc0a88cc87ee87a3cf9dd0d9e9bff")
+expa.exportAllMembers("all_members.xls")
