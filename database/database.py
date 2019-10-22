@@ -141,6 +141,11 @@ class Database:
                     email_reply_to_name = member.name
                     email_reply_to_phone = member.phone
 
+                    headers = {
+                        "Cc": email_reply_to,
+                        "Reply-To": f"{email_reply_to_name} <{email_reply_to}>"
+                    }
+
                     # extract data from card description
                     data = { "name": card["name"] }
                     for info in card["desc"].split("\n"):
@@ -168,7 +173,7 @@ Salutations,
                         to=email_to,
                         subject="Bienvenue | AIESEC",
                         contents=body,
-                        headers={"Reply-To": f"{email_reply_to_name} <{email_reply_to}>"}
+                        headers=headers
                     )
 
                     # move card to next list
