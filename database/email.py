@@ -26,7 +26,8 @@ class Email:
         body = eval(f'f"""{self.template}"""')
 
         # log into account
-        yag = yagmail.SMTP(user="info.lausanne@aiesec.ch", password="Executiveboard1920")
+        pwd = input("Password for info.lausanne@aiesec.ch: ")
+        yag = yagmail.SMTP(user="info.lausanne@aiesec.ch", password=pwd)
         yag.send(
             to=email,
             subject=subject,
