@@ -144,7 +144,10 @@ class Database:
             for member in ogxMembers:
                 if member.trelloId == memberId:
                     # extract data from card description
-                    to = { "name": card["name"].split(" ")[0] }
+                    to = {
+                        "first_name": card["name"].split(" ")[0],
+                        "name": card["name"]
+                    }
                     for info in card["desc"].split("\n"):
                         split = info.split(":")
                         to[split[0].strip().lower()] = split[1].strip()
@@ -154,7 +157,6 @@ class Database:
 
                     # email headers
                     headers = {
-                        "Cc": member.aiesec_email,
                         "Reply-To": f"{member.name} <{member.aiesec_email}>"
                     }
 

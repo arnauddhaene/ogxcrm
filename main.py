@@ -21,11 +21,9 @@ ogxTeam = {'1856304': '5cbae2c59d966941df8d9b5f',
 # initialise the dabatase
 additionalIDs = []
 
-db = Database("ba3ed2678ed81779e582848a4690da3dafbb9bc34933f4e2a7c24e68812e5864", additionalIDs if len(additionalIDs) > 0 else None)
+db = Database("2a2d9b2af6cb7c12c792e4939b6bb2f03b49823df2e73422a65e8bbbb4fdb92d", additionalIDs if len(additionalIDs) > 0 else None)
 
 #db.get()
 #db.push()
 
-#db.moveFromAssigned()
-expa = ExpaService("7ff684f1636708fed3ba2fb266020b3320edc0a88cc87ee87a3cf9dd0d9e9bff")
-expa.exportAllMembers("all_members.xls")
+db.moveFromAssigned()

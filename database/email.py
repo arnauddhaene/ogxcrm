@@ -14,6 +14,7 @@ class Email:
         return eval(f'f"""{non_f_str}"""')
 
     def send(self, from_, to, subject, headers):
+        first_name = to["first_name"]
         name = to["name"]
         email = to["email"]
 
@@ -30,5 +31,6 @@ class Email:
             to=email,
             subject=subject,
             contents=body,
-            headers=headers
+            headers=headers,
+            cc=member.aiesec_email
         )
