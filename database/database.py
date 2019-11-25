@@ -6,6 +6,8 @@ from database.expa import ExpaService
 from database.email import Email
 from fuzzywuzzy import process
 from unidecode import unidecode
+from xlrd import open_workbook
+from time import sleep
 
 class Database:
     """ Information relative to a person wanting to leave on exchange.
@@ -29,6 +31,8 @@ class Database:
     def effify(non_f_str: str):
         return eval(f'f"""{non_f_str}"""')
 
+    def getAllEBMembersWorldwide(self):
+        self.expa.getEBSWorlwide()
 
     def get(self):
         """
@@ -75,7 +79,6 @@ class Database:
         """
 
         self.trello.postNewPeople(self.peopleExpa)
-
 
     def moveFromAssigned(self):
         """
@@ -167,3 +170,66 @@ class Database:
 
                     # move card to next list
                     self.trello.moveCardToList(card["id"], self.trello.listFirstEmailSent)
+
+    def sendEmailInternational(self, members, info):
+        """
+        Send an email worldwide to all EBs
+
+        :param members: list of all members
+        """
+
+        sender_name = "Yasmine Benkirane"
+        sender_email = "yasmine.benkirane3@aiesec.net"
+
+        n_members = len(members)
+
+        for i, member in enumerate(members):
+            # extract data from card description
+            emails = []
+            email = member["aiesec_email"]
+            if email is not None and email != "" and email != " " and len(email) > 5:
+                emails.append(email)
+
+            email = member["email"]
+            if email is not None and email != "" and email != " " and len(email) > 5:
+                emails.append(email)
+
+            for j, email in enumerate(emails):
+
+                to = {
+                    "first_name": member["first_name"],
+                    "last_name": member["last_name"],
+                    "name": member["full_name"],
+                    "email": email
+                }
+
+                # email subject
+                subject = "[AIESEC Innovation] Global Survey"
+
+                # email headers
+                headers = {
+                    "Reply-To": f"{sender_name} <{sender_email}>"
+                }
+
+                # send email
+                print(f"[{i+1+info}/{n_members+info}][{j+1}/{len(emails)}] Sending email to {to['name']} <{to['email']}>")
+                email = Email(template="templates/innovation2.html")
+                email.send({}, to, subject, headers, cc=False)
+
+                sleep(1)
+
+    def loadDictFromExcel(self, filename, from_, to=None):
+        # load file
+        book = open_workbook(filename)
+        sheet = book.sheet_by_index(0)
+
+        # read header values into the list
+        keys = [ sheet.cell(0, i).value for i in range(sheet.ncols) ]
+
+        dict_list = []
+        for row_index in range(from_, to or sheet.nrows):
+            d = {keys[col_index]: sheet.cell(row_index, col_index).value
+                 for col_index in range(sheet.ncols)}
+            dict_list.append(d)
+
+        return dict_list

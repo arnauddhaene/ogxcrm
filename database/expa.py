@@ -2,9 +2,13 @@
 # -- coding: utf-8 --
 
 import datetime
+import time
 import xlwt
 from database.person import Person
 from database.apiService import ApiService
+
+from xlutils.copy import copy
+from xlrd import open_workbook
 
 class ExpaService(ApiService):
     """
@@ -365,6 +369,91 @@ class ExpaService(ApiService):
                 ids_clean.append(person["id"])
 
         self.toExcel(filename, headers, members_clean)
+
+    def getEBSWorlwide(self):
+
+        def is_token_valid(call, *args, tries=3):
+            response = call(*args)
+            if hasattr(response, "ok"):
+                if not response.ok:
+                    print(f"Error code {response.status_code}")
+                    if response.status_code == 500 or response.status_code == 504:
+                        time.sleep(2)
+                        # timeout
+                        if tries > 0:
+                            return is_token_valid(call, *args, tries = tries-1)
+                        else:
+                            return { "data" : [] }
+                    else:
+                        # token expired
+                        token = input("Enter new token: ")
+                        self.set_params({ "access_token": token })
+                        if tries > 0:
+                            return is_token_valid(call, *args, tries = tries-1)
+                        else:
+                            return { "data" : [] }
+
+            return response
+
+        book_ro = open_workbook("lcs_eb_worldwide.xls")
+        book = copy(book_ro)  # creates a writeable copy
+        sheet = book.get_sheet(0)  # get a first sheet
+
+        headers = [ "id", "first_name", "last_name", "full_name", "email", "aiesec_email", "role", "lc", "country" ]
+        row_offset = 7818
+        lcs_offset = 667
+
+        # get all lcs
+        # format is { "id": ..., "lc_id": ..., "city_id": ... }
+        lcs = self.get("/city_lcs")
+        n = len(lcs)
+        for i, lc in enumerate(lcs):
+            if i < lcs_offset:
+                continue
+
+            lc_id = lc["lc_id"]
+            committee = is_token_valid(self.getCommittee, lc_id)
+            if not "name" in committee:
+                print("Skipping...")
+                continue
+
+            print(f"[{i+1}/{n}] Getting infos of LC {committee['name']}")
+
+            terms = committee["terms"]
+            last_term = terms[len(terms) - 1]
+
+            print(f"Term: {last_term['short_name']}")
+
+            teams = is_token_valid(self.getTeams, lc_id, last_term["id"])
+            for team in teams["data"]:
+                if team["title"] == "EB" or team["team_type"] == "eb":
+                    # we found the eb
+                    members = is_token_valid(self.getTeamMembers, team["id"])
+
+                    for member in members["data"]:
+                        person = {
+                            'id'            : member["person"]["id"],
+                            'first_name'    : member["person"]["first_name"],
+                            'last_name'     : member["person"]["last_name"],
+                            'full_name'     : member["person"]["full_name"],
+                            'email'         : member["person"]["email"],
+                            'aiesec_email'  : member["person"]["aiesec_email"],
+                            'role'          : member["name"],
+                            'lc'            : committee["name"],
+                            'country'       : committee["country"]
+                        }
+
+                        for j in range(len(headers)):
+                            key = headers[j]
+                            sheet.write(row_offset, j, person[key] or " ")
+
+                        row_offset += 1
+
+                    book.save("lcs_eb_worldwide.xls")
+                    print(f"Added {len(members['data'])} people")
+                    print(f"Row offset: {row_offset}")
+
+            print("")
 
     def getAndExportCurrentMembers(self, filename, verbose=False):
         headers = ["name", "sud", "team", "role", "performance", "link", "LDA", "email", "aiesec_email", "secondary_email", "phone", "dob", "university", "study_area", "study_year", "IXP"]

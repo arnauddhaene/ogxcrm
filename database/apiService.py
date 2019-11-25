@@ -21,6 +21,14 @@ class ApiService:
         self.baseUrl = baseUrl
         self.params = params
 
+    def set_params(self, params):
+        """
+        Update params
+
+        :param params: map of request arguments to include in every request
+        """
+        self.params = params
+
     def get(self, url, params={}, toJson=True):
         """
         GET a resource

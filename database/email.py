@@ -13,7 +13,16 @@ class Email:
     def effify(self, non_f_str: str):
         return eval(f'f"""{non_f_str}"""')
 
-    def send(self, from_, to, subject, headers):
+    def send(self, from_, to, subject, headers, cc=True):
+        """
+        Send an email from info.lausanne@aiesec.ch, with cc to sender
+
+        :param from_: object representing the sender - fields are first_name, name (full name), phone, aiesec_email
+        :param to: object representing the target - mandatory fields are first_name, name (full name) and email
+        :param subject: email subject
+        :param headers: additional headers
+        """
+
         first_name = to["first_name"]
         name = to["name"]
         email = to["email"]
@@ -33,5 +42,5 @@ class Email:
             subject=subject,
             contents=body,
             headers=headers,
-            cc=member.aiesec_email
+            cc=member.aiesec_email if cc else None
         )
